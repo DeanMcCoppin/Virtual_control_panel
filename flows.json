@@ -1,0 +1,193 @@
+[
+    {
+        "id": "205effc846110f5f",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "4c1393b2917f7352",
+        "type": "inject",
+        "z": "205effc846110f5f",
+        "name": "timestamp",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "timestamp",
+        "payload": "",
+        "payloadType": "date",
+        "x": 200,
+        "y": 200,
+        "wires": [
+            [
+                "49e926988e4e1243",
+                "d56c7104128484ad"
+            ]
+        ]
+    },
+    {
+        "id": "d56c7104128484ad",
+        "type": "debug",
+        "z": "205effc846110f5f",
+        "name": "Start trigger",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 570,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "e970475673768178",
+        "type": "inject",
+        "z": "205effc846110f5f",
+        "name": "SimPosA",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "SimPosA",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 200,
+        "y": 280,
+        "wires": [
+            [
+                "49e926988e4e1243"
+            ]
+        ]
+    },
+    {
+        "id": "f538e8f7d362823f",
+        "type": "inject",
+        "z": "205effc846110f5f",
+        "name": "SimPosB",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "SimPosB",
+        "payload": "true",
+        "payloadType": "bool",
+        "x": 200,
+        "y": 360,
+        "wires": [
+            [
+                "49e926988e4e1243"
+            ]
+        ]
+    },
+    {
+        "id": "49e926988e4e1243",
+        "type": "function",
+        "z": "205effc846110f5f",
+        "name": "function 1",
+        "func": "// three inputs come in with msg.topic set to inject name\nlet state = context.get('state') || 0;\nlet outMsgs = [];\n\n// Kick off on “timestamp” or a dedicated “Start” inject\nif (msg.topic === 'timestamp' && state === 0) {\n  state = 1;\n}\n\nif (state === 1) {\n  // Forward state\n  outMsgs.push({ topic: 'DirFwd',   payload: true  });\n  outMsgs.push({ topic: 'DirRev',   payload: false });\n  outMsgs.push({ topic: 'SpeedSet', payload: 50    });  // 50% speed\n  // If we get a SimPosA into this node, move to reverse\n  if (msg.topic === 'SimPosA') state = 2;\n}\nelse if (state === 2) {\n  // Reverse state\n  outMsgs.push({ topic: 'DirFwd',   payload: false });\n  outMsgs.push({ topic: 'DirRev',   payload: true  });\n  outMsgs.push({ topic: 'SpeedSet', payload: 50    });\n  // If we get a SimPosB, move back to forward\n  if (msg.topic === 'SimPosB') state = 1;\n}\n\ncontext.set('state', state);\nreturn outMsgs;\nreturn msg;",
+        "outputs": 3,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 380,
+        "y": 320,
+        "wires": [
+            [
+                "50fcc0b2cdc0fc3d"
+            ],
+            [
+                "31ef96f96d3666b9"
+            ],
+            [
+                "d430c6174b7db9a8"
+            ]
+        ]
+    },
+    {
+        "id": "50fcc0b2cdc0fc3d",
+        "type": "debug",
+        "z": "205effc846110f5f",
+        "name": "Direction Forward",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "topic & \" : \" & payload",
+        "targetType": "jsonata",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 280,
+        "wires": [],
+        "info": "topic & \" : \" & payload\r\n"
+    },
+    {
+        "id": "31ef96f96d3666b9",
+        "type": "debug",
+        "z": "205effc846110f5f",
+        "name": "Direction Reverse",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "topic & \" : \" & payload",
+        "targetType": "jsonata",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 590,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "d430c6174b7db9a8",
+        "type": "debug",
+        "z": "205effc846110f5f",
+        "name": "Speed Setpoint",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "topic & \" : \" & payload",
+        "targetType": "jsonata",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 580,
+        "y": 360,
+        "wires": []
+    }
+]
